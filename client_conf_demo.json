@@ -1,0 +1,23 @@
+{
+    "prj_name": "code-sync-client",
+    "is_dev": true,
+
+    "data_root": "/tmp/data/code-sync-client",
+
+    "log": {
+        "level": 7,
+        "async_queue_size": 1000000,
+        "bufsize": 4096
+    },
+
+    "code_prj_map": {
+        "demo": {
+            "prj_home": "/tmp/data/code-sync-client/demo_prj",
+            "token": "c73b0ccea19da4a2f2c0f00ef16c8c49",
+            "code_sync_server": {
+                "host": "127.0.0.1",
+                "port": "6502"
+            }
+        }
+    }
+}

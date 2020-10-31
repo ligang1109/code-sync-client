@@ -1,0 +1,16 @@
+*.sw*
+
+tmp
+tags
+logs
+bin
+pkg
+
+.idea
+*.iml
+*DS_Store
+.vscode
+
+conf/server/*_server_conf_rewrite.json
+conf/server_conf_rewrite.json
+conf/http/*_http.conf*
