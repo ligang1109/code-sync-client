@@ -19,12 +19,15 @@ func init() {
 }
 
 func TestConf(t *testing.T) {
-	printComplexObjectForTest(&BaseConf)
+	printComplexObjectForTest(&CommonConf)
 	printComplexObjectForTest(&LogConf)
 
 	for name, conf := range CodePrjConfMap {
 		t.Log("prj", name)
 		printComplexObjectForTest(conf)
+		for _, server := range conf.CodeSyncServerList {
+			printComplexObjectForTest(server)
+		}
 	}
 }
 

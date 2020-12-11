@@ -2,6 +2,7 @@ package misc
 
 import (
 	"net/smtp"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -49,4 +50,31 @@ func StructSimpleFieldAssign(sou, dst interface{}) {
 			rdstv.Set(rsouv)
 		}
 	}
+}
+
+func PathInExcludeList(path string, excludeList []string) bool {
+	for _, pattern := range excludeList {
+		matched, err := filepath.Match(pattern, path)
+		if err != nil {
+			return true
+		}
+		if matched {
+			return true
+		}
+		matched, _ = filepath.Match(pattern, filepath.Base(path))
+		if matched {
+			return true
+		}
+	}
+
+	return false
+}
+
+func RelativePath(basePath, absolutePath string) string {
+	if basePath == absolutePath {
+		return "."
+	}
+
+	offset := len(basePath) + 1
+	return absolutePath[offset:]
 }

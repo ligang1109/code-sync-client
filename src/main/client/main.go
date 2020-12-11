@@ -1,15 +1,15 @@
 package main
 
 import (
-	"code-sync-client/command"
-	"code-sync-client/conf"
-	"code-sync-client/errno"
-	"code-sync-client/resource"
-
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+
+	"code-sync-client/command"
+	"code-sync-client/conf"
+	"code-sync-client/errno"
+	"code-sync-client/resource"
 )
 
 func main() {
@@ -38,20 +38,20 @@ func main() {
 
 	fargs := fs.Args()
 	if len(fargs) == 0 {
-		fmt.Println("do not has cmd arg")
+		resource.AccessLogger.Error([]byte("do not has cmd arg"))
 		os.Exit(errno.ECommonInvalidArg)
 	}
 
 	name := strings.TrimSpace(fargs[0])
 	cmd := command.NewCommandByName(name)
 	if cmd == nil {
-		fmt.Println("unknown cmd: " + name)
+		resource.AccessLogger.Error([]byte("unknown cmd: " + name))
 		os.Exit(errno.ECommonInvalidArg)
 	}
 
 	err := cmd.Run(fargs[1:])
 	if err != nil {
-		fmt.Println("run command error", err)
+		resource.AccessLogger.Error([]byte("run command error: " + err.Error()))
 		os.Exit(errno.ERunCommanError)
 	}
 }

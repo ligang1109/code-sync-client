@@ -14,7 +14,7 @@ var LogConf struct {
 }
 
 func initLogConf() {
-	LogConf.RootPath = BaseConf.DataRoot + "/logs"
+	LogConf.RootPath = CommonConf.DataRoot + "/logs"
 	LogConf.Level = ccJson.Log.Level
 	LogConf.AsyncQueueSize = ccJson.Log.AsyncQueueSize
 	LogConf.Bufsize = ccJson.Log.Bufsize

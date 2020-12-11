@@ -13,11 +13,20 @@
     "code_prj_map": {
         "demo": {
             "prj_home": "/tmp/data/code-sync-client/demo_prj",
-            "token": "c73b0ccea19da4a2f2c0f00ef16c8c49",
-            "code_sync_server": {
-                "host": "127.0.0.1",
-                "port": "6502"
-            }
+            "exclude_list": [
+                "logs",
+                "logs/*",
+                "tmp",
+                "tmp/*",
+                "*.sw*"
+            ],
+            "code_sync_server_list": [
+                {
+                    "host": "127.0.0.1",
+                    "port": "6502",
+                    "token": "c73b0ccea19da4a2f2c0f00ef16c8c49"
+                }
+            ]
         }
     }
 }

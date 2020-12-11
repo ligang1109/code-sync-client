@@ -6,10 +6,6 @@ import (
 	"strings"
 )
 
-const (
-	FileVersionIgnore = -1
-)
-
 type ICommand interface {
 	Run(args []string) error
 }
