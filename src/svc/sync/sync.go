@@ -33,6 +33,8 @@ var deleteSignQueryNames = append([]string{"prj", "user", "host", "rpath"}, misc
 
 type SyncSvc struct {
 	*svc.BaseSvc
+
+	client *httpclient.Client
 }
 
 func NewSyncSvc(traceId []byte) *SyncSvc {
@@ -40,10 +42,11 @@ func NewSyncSvc(traceId []byte) *SyncSvc {
 		BaseSvc: &svc.BaseSvc{
 			TraceId: traceId,
 		},
+		client: httpclient.NewClient(httpclient.NewConfig(), resource.AccessLogger),
 	}
 }
 
-func (us *SyncSvc) UploadFile(cpc *conf.CodePrjConf, rpath string) error {
+func (ss *SyncSvc) UploadFile(cpc *conf.CodePrjConf, rpath string) error {
 	apath := cpc.PrjHome + "/" + rpath
 	var rpathList []string
 	if gomisc.DirExist(apath) {
@@ -57,42 +60,42 @@ func (us *SyncSvc) UploadFile(cpc *conf.CodePrjConf, rpath string) error {
 
 	for _, fpath := range rpathList {
 		if misc.PathInExcludeList(fpath, cpc.ExcludeList) {
-			us.InfoLog([]byte("UploadFile"), []byte("exclude "+fpath))
+			ss.InfoLog([]byte("UploadFile"), []byte("exclude "+fpath))
 			continue
 		}
 
-		requestList, err := us.makeUploadFileRequestList(cpc, fpath)
+		requestList, err := ss.makeUploadFileRequestList(cpc, fpath)
 		if err != nil {
-			us.ErrorLog([]byte("UploadFile"), []byte("makeUploadFileRequest"))
+			ss.ErrorLog([]byte("UploadFile"), []byte("makeUploadFileRequest"))
 			continue
 		}
 
-		us.InfoLog([]byte("UploadFile"), []byte("upload "+fpath))
-		us.request(requestList)
+		ss.InfoLog([]byte("UploadFile"), []byte("upload "+fpath))
+		ss.request(requestList)
 	}
 
 	return nil
 }
 
-func (us *SyncSvc) DeleteFile(cpc *conf.CodePrjConf, rpath string) error {
+func (ss *SyncSvc) DeleteFile(cpc *conf.CodePrjConf, rpath string) error {
 	if misc.PathInExcludeList(rpath, cpc.ExcludeList) {
-		us.InfoLog([]byte("DeleteFile"), []byte("exclude "+rpath))
+		ss.InfoLog([]byte("DeleteFile"), []byte("exclude "+rpath))
 		return nil
 	}
 
-	requestList, err := us.makeDeleteFileRequestList(cpc, rpath)
+	requestList, err := ss.makeDeleteFileRequestList(cpc, rpath)
 	if err != nil {
-		us.ErrorLog([]byte("DeleteFile"), []byte("makeDeleteFileRequest"))
+		ss.ErrorLog([]byte("DeleteFile"), []byte("makeDeleteFileRequest"))
 		return err
 	}
 
-	us.InfoLog([]byte("DeleteFile"), []byte("delete "+rpath))
-	us.request(requestList)
+	ss.InfoLog([]byte("DeleteFile"), []byte("delete "+rpath))
+	ss.request(requestList)
 
 	return nil
 }
 
-func (us *SyncSvc) makeUploadFileRequestList(cpc *conf.CodePrjConf, rpath string) ([]*httpclient.Request, error) {
+func (ss *SyncSvc) makeUploadFileRequestList(cpc *conf.CodePrjConf, rpath string) ([]*httpclient.Request, error) {
 	bodyBuffer := bytes.NewBuffer([]byte{})
 	writer := multipart.NewWriter(bodyBuffer)
 
@@ -103,28 +106,28 @@ func (us *SyncSvc) makeUploadFileRequestList(cpc *conf.CodePrjConf, rpath string
 	apath := cpc.PrjHome + "/" + rpath
 
 	originPartData := make(map[string]string)
-	err := us.makeMultipartPerm(apath, writer, originPartData)
+	err := ss.makeMultipartPerm(apath, writer, originPartData)
 	if err != nil {
-		us.ErrorLog([]byte("makeMultipartPerm"), []byte(err.Error()))
+		ss.ErrorLog([]byte("makeMultipartPerm"), []byte(err.Error()))
 		return nil, err
 	}
 
-	err = us.makeMultipartFile(apath, rpath, writer, originPartData)
+	err = ss.makeMultipartFile(apath, rpath, writer, originPartData)
 	if err != nil {
-		us.ErrorLog([]byte("makeUploadFileRequest"), []byte("makeMultipartFile "+rpath+" "+err.Error()))
+		ss.ErrorLog([]byte("makeUploadFileRequest"), []byte("makeMultipartFile "+rpath+" "+err.Error()))
 		return nil, err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		us.ErrorLog([]byte("makeUploadFileRequest"), []byte("CloseWriter"))
+		ss.ErrorLog([]byte("makeUploadFileRequest"), []byte("CloseWriter"))
 		return nil, err
 	}
 
-	vs := us.queryValues(cpc, nil)
+	vs := ss.queryValues(cpc, nil)
 	var requestList []*httpclient.Request
 	for _, serverConf := range cpc.CodeSyncServerList {
-		ru := us.makeRequestUrl("file/upload", vs, serverConf, uploadSignQueryNames, originPartData)
+		ru := ss.makeRequestUrl("file/upload", vs, serverConf, uploadSignQueryNames, originPartData)
 		request, err := httpclient.NewRequest(http.MethodPost, ru, bodyBuffer.Bytes(), "", extHeaders)
 		if err != nil {
 			return nil, err
@@ -135,7 +138,7 @@ func (us *SyncSvc) makeUploadFileRequestList(cpc *conf.CodePrjConf, rpath string
 	return requestList, nil
 }
 
-func (us *SyncSvc) makeMultipartPerm(path string, writer *multipart.Writer, originPartData map[string]string) error {
+func (ss *SyncSvc) makeMultipartPerm(path string, writer *multipart.Writer, originPartData map[string]string) error {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return err
@@ -152,7 +155,7 @@ func (us *SyncSvc) makeMultipartPerm(path string, writer *multipart.Writer, orig
 	return nil
 }
 
-func (us *SyncSvc) makeMultipartFile(apath, rpath string, writer *multipart.Writer, originPartData map[string]string) error {
+func (ss *SyncSvc) makeMultipartFile(apath, rpath string, writer *multipart.Writer, originPartData map[string]string) error {
 	contents, err := ioutil.ReadFile(apath)
 	if err != nil {
 		return err
@@ -181,15 +184,15 @@ func (us *SyncSvc) makeMultipartFile(apath, rpath string, writer *multipart.Writ
 	return nil
 }
 
-func (us *SyncSvc) makeDeleteFileRequestList(cpc *conf.CodePrjConf, rpath string) ([]*httpclient.Request, error) {
+func (ss *SyncSvc) makeDeleteFileRequestList(cpc *conf.CodePrjConf, rpath string) ([]*httpclient.Request, error) {
 	signValues := map[string]string{
 		"rpath": rpath,
 	}
-	vs := us.queryValues(cpc, signValues)
+	vs := ss.queryValues(cpc, signValues)
 
 	var requestList []*httpclient.Request
 	for _, serverConf := range cpc.CodeSyncServerList {
-		ru := us.makeRequestUrl("file/delete", vs, serverConf, deleteSignQueryNames, signValues)
+		ru := ss.makeRequestUrl("file/delete", vs, serverConf, deleteSignQueryNames, signValues)
 		request, err := httpclient.NewRequest(http.MethodGet, ru, nil, "", nil)
 		if err != nil {
 			return nil, err
@@ -200,7 +203,7 @@ func (us *SyncSvc) makeDeleteFileRequestList(cpc *conf.CodePrjConf, rpath string
 	return requestList, nil
 }
 
-func (us *SyncSvc) queryValues(cpc *conf.CodePrjConf, extValues map[string]string) url.Values {
+func (ss *SyncSvc) queryValues(cpc *conf.CodePrjConf, extValues map[string]string) url.Values {
 	vs := url.Values{}
 
 	vs.Set("prj", cpc.PrjName)
@@ -216,7 +219,7 @@ func (us *SyncSvc) queryValues(cpc *conf.CodePrjConf, extValues map[string]strin
 	return vs
 }
 
-func (us *SyncSvc) makeRequestUrl(controllerAction string, vs url.Values, serverConf *conf.CodeSyncServerConf, signQueryNames []string, signQueryValues map[string]string) string {
+func (ss *SyncSvc) makeRequestUrl(controllerAction string, vs url.Values, serverConf *conf.CodeSyncServerConf, signQueryNames []string, signQueryValues map[string]string) string {
 	ru := "http://" + serverConf.Host + ":" + serverConf.Port
 	ru += serverConf.Path + controllerAction + "?"
 	ru += vs.Encode()
@@ -227,12 +230,12 @@ func (us *SyncSvc) makeRequestUrl(controllerAction string, vs url.Values, server
 			vs.Set(key, v)
 		}
 	}
-	ru += "&" + us.makeSignParams(vs, signQueryNames, serverConf.Token)
+	ru += "&" + ss.makeSignParams(vs, signQueryNames, serverConf.Token)
 
 	return ru
 }
 
-func (us *SyncSvc) makeSignParams(queryValues url.Values, signQueryNames []string, token string) string {
+func (ss *SyncSvc) makeSignParams(queryValues url.Values, signQueryNames []string, token string) string {
 	now := time.Now()
 	t := strconv.FormatInt(now.Unix(), 10)
 	nonce := strconv.FormatInt(gomisc.RandByTime(&now), 10)
@@ -247,14 +250,13 @@ func (us *SyncSvc) makeSignParams(queryValues url.Values, signQueryNames []strin
 	return r
 }
 
-func (us *SyncSvc) request(requestList []*httpclient.Request) {
-	client := httpclient.NewClient(httpclient.NewConfig(), resource.AccessLogger)
+func (ss *SyncSvc) request(requestList []*httpclient.Request) {
 	for _, req := range requestList {
-		resp, err := client.Do(req, RequestRetry)
+		resp, err := ss.client.Do(req, RequestRetry)
 		if err != nil {
-			us.ErrorLog([]byte("request"), []byte("RequestServerError: "+err.Error()))
+			ss.ErrorLog([]byte("request"), []byte("RequestServerError: "+err.Error()))
 		} else {
-			us.InfoLog([]byte("request.Response"), resp.Contents)
+			ss.InfoLog([]byte("request.Response"), resp.Contents)
 		}
 	}
 }

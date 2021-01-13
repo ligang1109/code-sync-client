@@ -126,18 +126,13 @@ func (ac *autoCommand) watchPrjRoutine(wg *sync.WaitGroup, cpc *conf.CodePrjConf
 }
 
 func (ac *autoCommand) watchDirRecursive(path string, watcher *fsnotify.Watcher, cpc *conf.CodePrjConf) error {
-	dirs, err := ac.listDirsInDir(path)
+	dirs, err := ac.listWatchDirs(cpc, path)
 	if err != nil {
 		resource.AccessLogger.Error([]byte("watch prj " + cpc.PrjName + " list dirs error: " + err.Error()))
 		return err
 	}
 
 	for _, dir := range dirs {
-		rpath := misc.RelativePath(cpc.PrjHome, dir)
-		if misc.PathInExcludeList(rpath, cpc.ExcludeList) {
-			resource.AccessLogger.Info([]byte("watch prj " + cpc.PrjName + " watcher exclude dir: " + dir))
-			continue
-		}
 
 		resource.AccessLogger.Info([]byte("watch prj " + cpc.PrjName + " watcher add dir: " + dir))
 		err = watcher.Add(dir)
@@ -150,7 +145,7 @@ func (ac *autoCommand) watchDirRecursive(path string, watcher *fsnotify.Watcher,
 	return nil
 }
 
-func (ac *autoCommand) listDirsInDir(rootDir string) ([]string, error) {
+func (ac *autoCommand) listWatchDirs(cpc *conf.CodePrjConf, rootDir string) ([]string, error) {
 	rootDir = strings.TrimRight(rootDir, "/")
 	if !gomisc.DirExist(rootDir) {
 		return nil, errors.New("Dir " + rootDir + " not exists")
@@ -173,9 +168,15 @@ func (ac *autoCommand) listDirsInDir(rootDir string) ([]string, error) {
 		for _, fi := range fis {
 			path := curDir + "/" + fi.Name()
 			if fi.IsDir() {
-				dirList = append(dirList, path)
+				rpath := misc.RelativePath(cpc.PrjHome, path)
+				if misc.PathInExcludeList(rpath, cpc.ExcludeList) {
+					resource.AccessLogger.Info([]byte("watch prj " + cpc.PrjName + " watcher exclude dir: " + rpath))
+				} else {
+					dirList = append(dirList, path)
+				}
 			}
 		}
+		_ = file.Close()
 	}
 
 	return dirList, nil
@@ -203,6 +204,11 @@ func (ac *autoCommand) readPrjEvents(watcher *fsnotify.Watcher, cpc *conf.CodePr
 
 func (ac *autoCommand) processPrjEvents(event *fsnotify.Event, watcher *fsnotify.Watcher, cpc *conf.CodePrjConf) {
 	apath := event.Name
+	if apath == "" || apath == "." {
+		resource.AccessLogger.Warning([]byte("watch prj " + cpc.PrjName + " ignore apath " + apath))
+		return
+	}
+
 	rpath := misc.RelativePath(cpc.PrjHome, apath)
 
 	if misc.PathInExcludeList(rpath, cpc.ExcludeList) {
