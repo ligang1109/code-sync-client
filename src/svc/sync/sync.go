@@ -124,7 +124,7 @@ func (us *SyncSvc) makeUploadFileRequestList(cpc *conf.CodePrjConf, rpath string
 	vs := us.queryValues(cpc, nil)
 	var requestList []*httpclient.Request
 	for _, serverConf := range cpc.CodeSyncServerList {
-		ru := us.makeRequestUrl("/file/upload", vs, serverConf, uploadSignQueryNames, originPartData)
+		ru := us.makeRequestUrl("file/upload", vs, serverConf, uploadSignQueryNames, originPartData)
 		request, err := httpclient.NewRequest(http.MethodPost, ru, bodyBuffer.Bytes(), "", extHeaders)
 		if err != nil {
 			return nil, err
@@ -189,7 +189,7 @@ func (us *SyncSvc) makeDeleteFileRequestList(cpc *conf.CodePrjConf, rpath string
 
 	var requestList []*httpclient.Request
 	for _, serverConf := range cpc.CodeSyncServerList {
-		ru := us.makeRequestUrl("/file/delete", vs, serverConf, deleteSignQueryNames, signValues)
+		ru := us.makeRequestUrl("file/delete", vs, serverConf, deleteSignQueryNames, signValues)
 		request, err := httpclient.NewRequest(http.MethodGet, ru, nil, "", nil)
 		if err != nil {
 			return nil, err
@@ -216,9 +216,9 @@ func (us *SyncSvc) queryValues(cpc *conf.CodePrjConf, extValues map[string]strin
 	return vs
 }
 
-func (us *SyncSvc) makeRequestUrl(urlPath string, vs url.Values, serverConf *conf.CodeSyncServerConf, signQueryNames []string, signQueryValues map[string]string) string {
+func (us *SyncSvc) makeRequestUrl(controllerAction string, vs url.Values, serverConf *conf.CodeSyncServerConf, signQueryNames []string, signQueryValues map[string]string) string {
 	ru := "http://" + serverConf.Host + ":" + serverConf.Port
-	ru += urlPath + "?"
+	ru += serverConf.Path + controllerAction + "?"
 	ru += vs.Encode()
 
 	for _, key := range signQueryNames {

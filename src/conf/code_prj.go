@@ -5,6 +5,7 @@ import "strings"
 type codeSyncServerConfJson struct {
 	Host  string `json:"host"`
 	Port  string `json:"port"`
+	Path  string `json:"path"`
 	Token string `json:"token"`
 }
 
@@ -17,6 +18,7 @@ type codePrjConfJson struct {
 type CodeSyncServerConf struct {
 	Host  string
 	Port  string
+	Path  string
 	Token string
 }
 
@@ -43,6 +45,7 @@ func initCodePrjConf() {
 			cpc.CodeSyncServerList = append(cpc.CodeSyncServerList, &CodeSyncServerConf{
 				Host:  server.Host,
 				Port:  server.Port,
+				Path:  server.Path,
 				Token: server.Token,
 			})
 		}

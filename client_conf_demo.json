@@ -24,6 +24,7 @@
                 {
                     "host": "127.0.0.1",
                     "port": "6502",
+                    "path": "/",
                     "token": "c73b0ccea19da4a2f2c0f00ef16c8c49"
                 }
             ]
