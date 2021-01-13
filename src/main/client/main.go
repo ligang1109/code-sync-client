@@ -8,7 +8,6 @@ import (
 
 	"code-sync-client/command"
 	"code-sync-client/conf"
-	"code-sync-client/errno"
 	"code-sync-client/resource"
 )
 
@@ -16,7 +15,7 @@ func main() {
 	var confPath string
 
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	fs.StringVar(&confPath, "confPath", os.Getenv("HOME")+"/.code-sync-client-conf.json", "client conf path")
+	fs.StringVar(&confPath, "conf-path", os.Getenv("HOME")+"/.code-sync-client-conf.json", "client conf path")
 	_ = fs.Parse(os.Args[1:])
 
 	confPath = strings.TrimRight(confPath, "/")
@@ -39,19 +38,18 @@ func main() {
 	fargs := fs.Args()
 	if len(fargs) == 0 {
 		resource.AccessLogger.Error([]byte("do not has cmd arg"))
-		os.Exit(errno.ECommonInvalidArg)
+		return
 	}
 
 	name := strings.TrimSpace(fargs[0])
 	cmd := command.NewCommandByName(name)
 	if cmd == nil {
 		resource.AccessLogger.Error([]byte("unknown cmd: " + name))
-		os.Exit(errno.ECommonInvalidArg)
+		return
 	}
 
 	err := cmd.Run(fargs[1:])
 	if err != nil {
 		resource.AccessLogger.Error([]byte("run command error: " + err.Error()))
-		os.Exit(errno.ERunCommanError)
 	}
 }

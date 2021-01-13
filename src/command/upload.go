@@ -51,7 +51,7 @@ func (uc *uploadCommand) parseArgs() error {
 	var ok bool
 	uc.cpc, ok = conf.CodePrjConfMap[uc.prjName]
 	if !ok {
-		return errors.New("prj " + uc.prjName + "not exist")
+		return errors.New("prj " + uc.prjName + " not exist")
 	}
 
 	if len(uc.Fs.Args()) == 0 {

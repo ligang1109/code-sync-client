@@ -51,7 +51,7 @@ func (dc *deleteCommand) parseArgs() error {
 	var ok bool
 	dc.cpc, ok = conf.CodePrjConfMap[dc.prjName]
 	if !ok {
-		return errors.New("prj " + dc.prjName + "not exist")
+		return errors.New("prj " + dc.prjName + " not exist")
 	}
 
 	if len(dc.Fs.Args()) == 0 {

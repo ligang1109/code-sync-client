@@ -11,8 +11,8 @@ import (
 	"github.com/goinbox/gomisc"
 
 	"code-sync-client/conf"
-	"code-sync-client/resource"
 	"code-sync-client/misc"
+	"code-sync-client/resource"
 	syncSvc "code-sync-client/svc/sync"
 )
 

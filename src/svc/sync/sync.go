@@ -55,19 +55,19 @@ func (us *SyncSvc) UploadFile(cpc *conf.CodePrjConf, rpath string) error {
 		rpathList = append(rpathList, rpath)
 	}
 
-	for _, rpath := range rpathList {
-		if misc.PathInExcludeList(rpath, cpc.ExcludeList) {
-			us.InfoLog([]byte("UploadFile"), []byte("exclude "+rpath))
-			return nil
+	for _, fpath := range rpathList {
+		if misc.PathInExcludeList(fpath, cpc.ExcludeList) {
+			us.InfoLog([]byte("UploadFile"), []byte("exclude "+fpath))
+			continue
 		}
 
-		requestList, err := us.makeUploadFileRequestList(cpc, rpath)
+		requestList, err := us.makeUploadFileRequestList(cpc, fpath)
 		if err != nil {
 			us.ErrorLog([]byte("UploadFile"), []byte("makeUploadFileRequest"))
-			return err
+			continue
 		}
 
-		us.InfoLog([]byte("UploadFile"), []byte("upload "+rpath))
+		us.InfoLog([]byte("UploadFile"), []byte("upload "+fpath))
 		us.request(requestList)
 	}
 
@@ -111,7 +111,7 @@ func (us *SyncSvc) makeUploadFileRequestList(cpc *conf.CodePrjConf, rpath string
 
 	err = us.makeMultipartFile(apath, rpath, writer, originPartData)
 	if err != nil {
-		us.ErrorLog([]byte("makeUploadFileRequest"), []byte("makeMultipartFile"))
+		us.ErrorLog([]byte("makeUploadFileRequest"), []byte("makeMultipartFile "+rpath+" "+err.Error()))
 		return nil, err
 	}
 
