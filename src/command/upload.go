@@ -26,6 +26,8 @@ func newUploadCommand() ICommand {
 
 	uc.Fs.StringVar(&uc.prjName, "prj-name", "", "prj-name")
 
+	uc.changeToConsoleLogger()
+
 	return uc
 }
 

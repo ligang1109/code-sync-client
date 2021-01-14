@@ -25,6 +25,8 @@ func newDeleteCommand() ICommand {
 
 	dc.Fs.StringVar(&dc.prjName, "prj-name", "", "prj-name")
 
+	dc.changeToConsoleLogger()
+
 	return dc
 }
 

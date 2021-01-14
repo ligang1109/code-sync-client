@@ -1,8 +1,10 @@
 package command
 
 import (
+	"code-sync-client/resource"
 	"errors"
 	"flag"
+	"github.com/goinbox/golog"
 	"strings"
 )
 
@@ -99,4 +101,8 @@ func (bc *baseCommand) parseArgs(args []string) error {
 	}
 
 	return nil
+}
+
+func (bc *baseCommand) changeToConsoleLogger() {
+	resource.AccessLogger = resource.NewLogger(golog.NewConsoleWriter())
 }
